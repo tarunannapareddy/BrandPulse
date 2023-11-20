@@ -2,6 +2,12 @@ from __future__ import print_function
 import os.path
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
+from kafka import KafkaProducer
+import json
+
+BROKER = '10.142.0.6:9092'
+PRODUCER_TOPIC = 'quickstart-events'
+
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
@@ -12,11 +18,19 @@ SERVICE_ACCOUNT_FILE = 'keys.json'
 credentails = None
 credentials = service_account.Credentials.from_service_account_file( SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
-# Output file to write the data
-OUTPUT_FILE = 'output.txt'
+# Messages will be serialized as JSON 
+def serializer(message):
+    return json.dumps(message).encode('utf-8')
+
+# Kafka Producer
+producer = KafkaProducer(
+    bootstrap_servers=[BROKER],
+    value_serializer=serializer
+)
 
 def main():
     try:
+        #prod = kafkaProducer(BROKER,PRODUCER_TOPIC)
         service = build('sheets', 'v4', credentials=credentials)
 
         # Call the Sheets API
@@ -25,16 +39,11 @@ def main():
                                     range=SAMPLE_RANGE_NAME).execute()
         values = result.get('values', [])
 
-        if not values:
-            print('No data found.')
-            return
+        for row in values:
+             message = {'tweet':row[0], 'company':row[1]}
+             print(message)
+             producer.send(PRODUCER_TOPIC, message)
 
-        with open(OUTPUT_FILE, 'w') as output_file:
-            for row in values:
-                print(row)
-                output_file.write(', '.join(row) + '\n')
-
-        print(f'Data written to {OUTPUT_FILE}')
     except HttpError as err:
         print(err)
 
