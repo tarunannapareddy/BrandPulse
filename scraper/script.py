@@ -4,9 +4,10 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from kafka import KafkaProducer
 import json
+import time
 
 BROKER = '10.142.0.6:9092'
-PRODUCER_TOPIC = 'quickstart-events'
+PRODUCER_TOPIC = 'events'
 
 
 # If modifying these scopes, delete the file token.json.
@@ -34,15 +35,19 @@ def main():
         service = build('sheets', 'v4', credentials=credentials)
 
         # Call the Sheets API
-        sheet = service.spreadsheets()
-        result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                    range=SAMPLE_RANGE_NAME).execute()
-        values = result.get('values', [])
+        while True:
+            sheet = service.spreadsheets()
+            result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                                        range=SAMPLE_RANGE_NAME).execute()
+            values = result.get('values', [])
 
-        for row in values:
-             message = {'tweet':row[0], 'company':row[1]}
-             print(message)
-             producer.send(PRODUCER_TOPIC, message)
+            for row in values:
+                message = {'tweet':row[0], 'company':row[1]}
+                json_message = json.dumps(message)
+                print(json_message)
+                producer.send(PRODUCER_TOPIC, json_message)
+                time.sleep(2)
+            time.sleep(60)
 
     except HttpError as err:
         print(err)
