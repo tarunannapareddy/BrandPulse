@@ -1,7 +1,7 @@
 import json 
 from kafka import KafkaConsumer
 
-BROKER = '10.142.0.6:9092'
+BROKER = '10.142.0.2:9092'
 CONSUMER_TOPIC = 'events'
 
 if __name__ == '__main__':

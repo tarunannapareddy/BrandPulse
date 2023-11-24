@@ -10,7 +10,7 @@ def serializer(message):
 
 # Kafka Producer
 producer = KafkaProducer(
-    bootstrap_servers=['10.142.0.6:9092'],
+    bootstrap_servers=['10.142.0.2:9092'],
     value_serializer=serializer
 )
 
