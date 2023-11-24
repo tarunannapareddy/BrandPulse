@@ -14,7 +14,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 # The ID and range of a sample spreadsheet.
 SAMPLE_SPREADSHEET_ID = '16IQ9G3f3YRUTa1MCeZBnq2km81qwR-GOkgO8yIYgcTU'
 SAMPLE_RANGE_NAME = 'Sheet1!A1:B101'
-SERVICE_ACCOUNT_FILE = 'scraper/datacenter_keys.json'
+SERVICE_ACCOUNT_FILE = 'datacenter_keys.json'
 credentails = None
 credentials = service_account.Credentials.from_service_account_file( SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
