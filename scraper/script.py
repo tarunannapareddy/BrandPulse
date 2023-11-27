@@ -41,9 +41,8 @@ def main():
 
             for row in values:
                 message = {'tweet':row[0], 'company':row[1]}
-                json_message = json.dumps(message)
-                print(json_message)
-                producer.send(PRODUCER_TOPIC, json_message)
+                print(message)
+                producer.send(PRODUCER_TOPIC, message)
                 time.sleep(2)
             time.sleep(60)
 

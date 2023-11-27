@@ -1,4 +1,6 @@
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import *
+from pyspark.sql.types import *
 
 spark = (SparkSession.builder.appName("KafkaApp")
     .master("local[*]")
@@ -14,12 +16,22 @@ sampleDataframe = (
         .option("startingOffsets", "earliest")
         .load()
     )
+
 sampleDataframe.printSchema()
 
-query = sampleDataframe \
-    .writeStream \
-    .outputMode("complete") \
+base_df = sampleDataframe.selectExpr("CAST(value as STRING)", "timestamp")
+schema = (StructType()
+        .add("tweet", StringType())
+        .add("company", StringType()))
+data = base_df.select(
+    from_json(col("value"), schema).getField("tweet").alias("tweet"),
+    from_json(col("value"), schema).getField("company").alias("company"),
+    "timestamp"
+)
+
+query = data.writeStream \
     .format("console") \
+    .outputMode("append")\
     .start()
 
 query.awaitTermination()
