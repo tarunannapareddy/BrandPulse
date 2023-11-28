@@ -1,6 +1,12 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+import os
+
+textblob_path = 'textblob-0.17.1.tar.gz'
+os.system(f"pip install --no-index --find-links=./ {textblob_path}")
+
+
 from textblob import TextBlob
 
 
@@ -40,7 +46,7 @@ data = base_df.select(
 # Apply sentiment analysis to the 'tweet' column and add a new column 'sentiment'
 result_df = data.withColumn("sentiment", sentiment_udf(col("tweet")))
 
-query = data.writeStream \
+query = result_df.writeStream \
     .format("console") \
     .outputMode("append")\
     .start()
