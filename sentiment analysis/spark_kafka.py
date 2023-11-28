@@ -1,13 +1,21 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+from textblob import TextBlob
+
+
+def get_sentiment(text):
+    blob = TextBlob(text)
+    return blob.sentiment.polarity
+# Register the UDF
+sentiment_udf = udf(get_sentiment, DoubleType())
 
 spark = (SparkSession.builder.appName("KafkaApp")
     .master("local[*]")
     .getOrCreate())
 spark.sparkContext.setLogLevel("ERROR")
 
-KAFKA_TOPIC_NAME = "events"
+KAFKA_TOPIC_NAME = "events2"
 KAFKA_BOOTSTRAP_SERVER = "10.142.0.2:9092"
 sampleDataframe = (
         spark.readStream.format("kafka")
@@ -28,6 +36,9 @@ data = base_df.select(
     from_json(col("value"), schema).getField("company").alias("company"),
     "timestamp"
 )
+
+# Apply sentiment analysis to the 'tweet' column and add a new column 'sentiment'
+result_df = data.withColumn("sentiment", sentiment_udf(col("tweet")))
 
 query = data.writeStream \
     .format("console") \
