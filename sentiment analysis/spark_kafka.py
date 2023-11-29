@@ -3,6 +3,7 @@ from pyspark.sql.functions import *
 from pyspark.sql.types import *
 import os
 import json
+from datetime import datetime
 
 textblob_path = 'textblob-0.17.1.tar.gz'
 os.system(f"pip install --no-index --find-links=./ {textblob_path}")
@@ -39,12 +40,12 @@ def write_to_kafka(companies):
     for row in companies:
         company = row["company"]
         if r.get(company) is None:
-            r.set(company, str(timestamp_millis), px= 9000)
+            r.set(company, str(datetime.now()), px= 9000)
             kafka_message = {'company': company}
             producer.send(KAFKA_TOPIC_NOTIFICATION, kafka_message)
             print(f"published kafka message for company {company}")
         else:
-            print("company already notified")
+            print(f"company already notified at time {r.get(company)} and time now is {datetime.now()}")
 
 def write_to_bigtable(batch_df, epoch_id):
     # This function will be called for each batch of data in the streaming DataFrame
