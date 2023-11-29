@@ -7,7 +7,7 @@ import json
 import time
 
 BROKER = '10.142.0.2:9092'
-PRODUCER_TOPIC = 'events'
+PRODUCER_TOPIC = 'events2'
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
