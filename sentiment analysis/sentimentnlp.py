@@ -1,7 +1,12 @@
+import os
+
+spark_nlp_path = 'spark-nlp-5.1.4.tar.gz'
+os.system(f"pip install --no-index --find-links=./ {spark_nlp_path}")
+
 import sparknlp
 spark = sparknlp.start()
 
-# # Import the required modules and classes
+# Import the required modules and classes
 
 from sparknlp.base import DocumentAssembler, Pipeline, Finisher
 from sparknlp.annotator import (
@@ -47,13 +52,11 @@ pipeline = Pipeline(
     ]
 )
 
+# Create a spark Data Frame with an example sentence
 data = spark.createDataFrame(
     [
         [
-            "It is very expensive and the staff is very poor. They do not value customers"
-        ],
-        [
-            "Quality if maintained. The cleanliness of restaurant is top notch. And the food is delicious"
+            "The restaurant staff is very bad"
         ]
     ]
 ).toDF("text") # use the column name `text` defined in the pipeline as input
