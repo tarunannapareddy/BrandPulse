@@ -31,13 +31,13 @@ sentence_detector = SentenceDetector().setInputCols(["document"]).setOutputCol("
 # Step 3: Tokenization
 tokenizer = Tokenizer().setInputCols(["sentence"]).setOutputCol("token")
 # Step 4: Lemmatization
-lemmatizer= Lemmatizer().setInputCols("token").setOutputCol("lemma").setDictionary(lemmas_small, key_delimiter="->", value_delimiter="\t")
+lemmatizer= Lemmatizer().setInputCols("token").setOutputCol("lemma").setDictionary("gs://spark_job_b/lemmas_small.txt", key_delimiter="->", value_delimiter="\t")
 # Step 5: Sentiment Detection
 sentiment_detector= (
     SentimentDetector()
     .setInputCols(["lemma", "sentence"])
     .setOutputCol("sentiment_score")
-    .setDictionary(default_sentiment_dict, ",")
+    .setDictionary("gs://spark_job_b/default-sentiment-dict.txt", ",")
 )
 # Step 6: Finisher
 finisher= (
