@@ -1,5 +1,13 @@
 import os
 
+# Cython
+cython_path = 'Cython-3.0.6.tar.gz'
+os.system(f"pip install --no-index --find-links=./ {cython_path}")
+
+# Setuptools
+setuptools_path = 'setuptools-69.0.2.tar.gz'
+os.system(f"pip install --no-index --find-links=./ {setuptools_path}")
+
 # Transformers
 transformers_path = 'transformers-4.35.2.tar.gz'
 os.system(f"pip install --no-index --find-links=./ {transformers_path}")
