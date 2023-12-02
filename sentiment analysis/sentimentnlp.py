@@ -1,7 +1,7 @@
-# import os
+import os
 
-# spark_nlp_path = 'spark-nlp-5.1.4.tar.gz'
-# os.system(f"pip install --no-index --find-links=./ {spark_nlp_path}")
+spark_nlp_path = 'spark-nlp-5.1.4.tar.gz'
+os.system(f"pip install --no-index --find-links=./ {spark_nlp_path}")
 
 import sparknlp
 spark = sparknlp.start()
