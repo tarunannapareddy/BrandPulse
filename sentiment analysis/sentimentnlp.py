@@ -1,7 +1,7 @@
-import os
+# import os
 
-spark_nlp_path = 'spark-nlp-5.1.4.tar.gz'
-os.system(f"pip install --no-index --find-links=./ {spark_nlp_path}")
+# spark_nlp_path = 'spark-nlp-5.1.4.tar.gz'
+# os.system(f"pip install --no-index --find-links=./ {spark_nlp_path}")
 
 import sparknlp
 spark = sparknlp.start()
@@ -22,18 +22,22 @@ document_assembler = (
     .setInputCol("text")
     .setOutputCol("document")
 )
+
+lemmas_small = "gs://spark_job_b/lemmas_small.txt"
+default_sentiment_dict = "gs://spark_job_b/default-sentiment-dict.txt"
+
 # Step 2: Sentence Detection
 sentence_detector = SentenceDetector().setInputCols(["document"]).setOutputCol("sentence")
 # Step 3: Tokenization
 tokenizer = Tokenizer().setInputCols(["sentence"]).setOutputCol("token")
 # Step 4: Lemmatization
-lemmatizer= Lemmatizer().setInputCols("token").setOutputCol("lemma").setDictionary("lemmas_small.txt", key_delimiter="->", value_delimiter="\t")
+lemmatizer= Lemmatizer().setInputCols("token").setOutputCol("lemma").setDictionary(lemmas_small, key_delimiter="->", value_delimiter="\t")
 # Step 5: Sentiment Detection
 sentiment_detector= (
     SentimentDetector()
     .setInputCols(["lemma", "sentence"])
     .setOutputCol("sentiment_score")
-    .setDictionary("default-sentiment-dict.txt", ",")
+    .setDictionary(default_sentiment_dict, ",")
 )
 # Step 6: Finisher
 finisher= (
