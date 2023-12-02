@@ -7,6 +7,10 @@ os.system(f"pip install --no-index --find-links=./ {cython_path}")
 wheel_path = 'wheel-0.42.0.tar.gz'
 os.system(f"pip install --no-index --find-links=./ {wheel_path}")
 
+# Pyproject-metadata
+pyproject_metadata_path = 'pyproject-metadata-0.7.1.tar.gz'
+os.system(f"pip install --no-index --find-links=./ {pyproject_metadata_path}")
+
 # Setuptools
 setuptools_path = 'setuptools-69.0.2.tar.gz'
 os.system(f"pip install --no-index --find-links=./ {setuptools_path}")
