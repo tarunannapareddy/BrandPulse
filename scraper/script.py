@@ -13,7 +13,7 @@ PRODUCER_TOPIC = 'events2'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 # The ID and range of a sample spreadsheet.
 SAMPLE_SPREADSHEET_ID = '16IQ9G3f3YRUTa1MCeZBnq2km81qwR-GOkgO8yIYgcTU'
-SAMPLE_RANGE_NAME = 'Sheet1!A1:B101'
+sheet_range_list = ['Sheet1!A1:B10', 'Sheet2!A1:B10', 'Sheet3!A1:B10', 'Sheet4!A1:B10', 'Sheet5!A1:B10']
 SERVICE_ACCOUNT_FILE = 'datacenter_keys.json'
 credentails = None
 credentials = service_account.Credentials.from_service_account_file( SERVICE_ACCOUNT_FILE, scopes=SCOPES)
@@ -34,16 +34,18 @@ def main():
 
         # Call the Sheets API
         while True:
-            sheet = service.spreadsheets()
-            result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
-                                        range=SAMPLE_RANGE_NAME).execute()
-            values = result.get('values', [])
+            for SAMPLE_RANGE_NAME in sheet_range_list:
+                sheet = service.spreadsheets()
+                result = sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID,
+                                            range=SAMPLE_RANGE_NAME).execute()
+                values = result.get('values', [])
 
-            for row in values:
-                message = {'tweet':row[0], 'company':row[1]}
-                print(message)
-                producer.send(PRODUCER_TOPIC, message)
-                time.sleep(2)
+                for row in values:
+                    message = {'tweet':row[0], 'company':row[1]}
+                    print(message)
+                    producer.send(PRODUCER_TOPIC, message)
+                    time.sleep(1)
+                time.sleep(10)
             time.sleep(60)
 
     except HttpError as err:
