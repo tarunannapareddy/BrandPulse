@@ -5,7 +5,16 @@ import jsonpickle
 import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://naveenaganesan:password@localhost/brandpulse'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://naveenaganesan:password@localhost/brandpulse'
+
+DB_HOST = '34.74.206.172'
+DB_PORT = '5432'
+DB_NAME = 'brandpulse'
+DB_USER = 'postgres'
+DB_PASSWORD = 'test1234'
+
+DB_URL = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 db = SQLAlchemy(app)
 
 class Customer(db.Model):
@@ -38,13 +47,13 @@ def create_customer():
     db.session.commit()
 
     # return Response(response=jsonpickle.encode({"message": "Customer added successfully!"}), 
-                # status=200, mimetype="application/json")
+    #             status=200, mimetype="application/json")
     return render_template('add_customer.html', message="Customer added successfully!")
 
 if __name__ == '__main__':
     print("Starting server")
     db.create_all()
     # app.run(debug=True)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=80, debug=True)
 
 
