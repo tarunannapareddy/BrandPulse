@@ -24,12 +24,12 @@ DB_PASSWORD = 'test1234'
 
 BROKER = '10.142.0.2:9092'
 CONSUMER_TOPIC = 'notification'
-columnfamily = 'companyInfo'
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_bigtable.json"
-client = bigtable.Client(project='mystical-studio-406018')
-instance = client.instance('bigtable')
-table_id = 'sentiment'
-table = instance.table(table_id)
+#columnfamily = 'companyInfo'
+#os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_bigtable.json"
+#client = bigtable.Client(project='mystical-studio-406018')
+#instance = client.instance('bigtable')
+#table_id = 'sentiment'
+#table = instance.table(table_id)
 image = 'sentiment_plot.png'
 
 def read_data(company_name):
@@ -98,7 +98,8 @@ def get_data_from_db(company_name):
 
 def send_mail(company):
     # Email configuration
-    sender_email = "dcsc4403@gmail.com"
+    #sender_email = "dcsc4403@gmail.com"
+    sender_email = "naveenaganesan05@gmail.com"
     # receiver_email = "tarunannapareddy1997@gmail.com"
     receiver_email = get_data_from_db(company)
     subject = f"BrandPulse: Public pulse for your company {company}"
@@ -118,7 +119,7 @@ def send_mail(company):
     # Connect to the SMTP server
     smtp_server = smtplib.SMTP("smtp.gmail.com", 587)
     smtp_server.starttls()
-    smtp_server.login(sender_email, "DCSC@4403123")  # Replace with your email and password
+    smtp_server.login(sender_email, "")  # Replace with your email and password
 
     # Send email
     smtp_server.sendmail(sender_email, receiver_email, msg.as_string())
@@ -140,7 +141,10 @@ if __name__ == '__main__':
                 payload = json.loads(message.value)
                 print(payload)
                 company_name = payload['company']
-                read_data(company_name)
+                print(f"Company name:{company_name}")
+                company_name = "Naveena"
+                print(f"Company name:{company_name}")
+              #  read_data(company_name)
                 send_mail(company_name)
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
