@@ -28,25 +28,22 @@ def read_data(company_name):
         cells = row.cells[columnfamily]
         company = cells['company'.encode('utf-8')][0].value.decode('utf-8')
         sentiment = cells['sentiment'.encode('utf-8')][0].value.decode('utf-8')
-        time = cells['time'.encode('utf-8')][0].value.decode('utf-8')
-        print(f"loaded data {company} and {sentiment} and {time}")
+        time = pd.to_datetime(cells['time'.encode('utf-8')][0].value.decode('utf-8'))
         data.append({'company': company, 'sentiment': sentiment, 'time': time})
     df = pd.DataFrame(data)
     df['hour'] = df['time'].dt.hour
     df['sentiment_count'] = 1  # For counting occurrences
     
     # Group by hour and sentiment
-    grouped_data = df.groupby(['hour', 'sentiment']).count().reset_index()
+    grouped_data = df.groupby(['hour', 'sentiment']).size().unstack(fill_value=0)
 
-    # Pivot the table for better visualization
-    pivot_table = grouped_data.pivot(index='hour', columns='sentiment', values='sentiment_count').fillna(0)
-
+    print(grouped_data)
     # Plotting
-    pivot_table.plot(kind='bar', stacked=True)
+    grouped_data.plot(kind='line', marker='o')
     plt.title('Sentiment Counts by Hour')
     plt.xlabel('Hour')
     plt.ylabel('Count')
-    plt.savefig('sentiment_counts_plot.png', bbox_inches='tight')
+    plt.savefig('sentiment_plot.png', bbox_inches='tight')
     plt.show()
 
 
@@ -55,7 +52,7 @@ if __name__ == '__main__':
     consumer = KafkaConsumer(
         CONSUMER_TOPIC,
         bootstrap_servers=BROKER,
-        auto_offset_reset='latest'
+        auto_offset_reset='earliest'
     )
     for message in consumer:
         if message.value:  # Check if message is not empty
@@ -68,3 +65,4 @@ if __name__ == '__main__':
                 print(f"Error decoding JSON: {e}")
         else:
             print("Received an empty message")
+        break
