@@ -4,6 +4,10 @@ import os
 from datetime import datetime, timedelta
 import pandas as pd
 import matplotlib.pyplot as plt
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.application import MIMEApplication
 from google.cloud import bigtable
 from datetime import datetime, timedelta
 from google.cloud.bigtable.row_filters import (
@@ -20,6 +24,7 @@ client = bigtable.Client(project='mystical-studio-406018')
 instance = client.instance('bigtable')
 table_id = 'sentiment'
 table = instance.table(table_id)
+image = 'sentiment_plot.png'
 
 def read_data(company_name):
     rows = table.read_rows( filter_=TimestampRangeFilter(TimestampRange(start=datetime.now() - timedelta(minutes=360), end=datetime.now())))
@@ -43,8 +48,36 @@ def read_data(company_name):
     plt.title('Sentiment Counts by Hour')
     plt.xlabel('Hour')
     plt.ylabel('Count')
-    plt.savefig('sentiment_plot.png', bbox_inches='tight')
-    plt.show()
+    plt.savefig(image, bbox_inches='tight')
+
+def send_mail(company):
+    # Email configuration
+    sender_email = "dcsc4403@gmail.com"
+    receiver_email = "tarunannapareddy1997@gmail.com"
+    subject = f"BrandPulse: Public pulse for your company {company}"
+
+    # Create message container
+    msg = MIMEMultipart()
+    msg['From'] = sender_email
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+
+    # Attach image to the email
+    with open(image, "rb") as img_file:
+        attachment = MIMEApplication(img_file.read(), _subtype="png")
+        attachment.add_header('Content-Disposition', 'attachment', filename=f"{image}")
+        msg.attach(attachment)
+
+    # Connect to the SMTP server
+    smtp_server = smtplib.SMTP("smtp.gmail.com", 587)
+    smtp_server.starttls()
+    smtp_server.login(sender_email, "DCSC@4403123")  # Replace with your email and password
+
+    # Send email
+    smtp_server.sendmail(sender_email, receiver_email, msg.as_string())
+
+    # Quit SMTP server
+    smtp_server.quit()
 
 
 if __name__ == '__main__':
@@ -61,6 +94,7 @@ if __name__ == '__main__':
                 print(payload)
                 company_name = payload['company']
                 read_data(company_name)
+                send_mail(company_name)
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
         else:
