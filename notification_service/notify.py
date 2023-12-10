@@ -1,5 +1,6 @@
 import json 
 from kafka import KafkaConsumer
+import psycopg2
 import os
 from datetime import datetime, timedelta
 import pandas as pd
@@ -15,6 +16,11 @@ from google.cloud.bigtable.row_filters import (
     TimestampRange
 )
 
+DB_HOST = '34.74.206.172'
+DB_PORT = '5432'
+DB_NAME = 'brandpulse'
+DB_USER = 'postgres'
+DB_PASSWORD = 'test1234'
 
 BROKER = '10.142.0.2:9092'
 CONSUMER_TOPIC = 'notification'
@@ -50,10 +56,51 @@ def read_data(company_name):
     plt.ylabel('Count')
     plt.savefig(image, bbox_inches='tight')
 
+def get_data_from_db(company_name):
+    try:
+        # Establish a connection to the PostgreSQL database
+        conn = psycopg2.connect(
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT
+        )
+
+        # Create a cursor object
+        cursor = conn.cursor()
+
+        # Define your SQL query to fetch data from the table (replace 'your_table_name' with your actual table name)
+        sql_query = f"SELECT * FROM customer WHERE name = %s"
+
+        # Execute the SQL query with the provided company_name parameter
+        cursor.execute(sql_query, (company_name,))
+
+        # Fetch all rows from the result
+        rows = cursor.fetchall()
+
+        # Process the data as needed
+        for row in rows:
+            # Access the columns of each row as row[0], row[1], etc.
+            print(row)
+            email = row[3]
+
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+
+        print(email)
+        
+        return email
+
+    except (Exception, psycopg2.Error) as e:
+        print(f"Error while fetching data from PostgreSQL: {e}")
+
 def send_mail(company):
     # Email configuration
     sender_email = "dcsc4403@gmail.com"
-    receiver_email = "tarunannapareddy1997@gmail.com"
+    # receiver_email = "tarunannapareddy1997@gmail.com"
+    receiver_email = get_data_from_db(company)
     subject = f"BrandPulse: Public pulse for your company {company}"
 
     # Create message container
