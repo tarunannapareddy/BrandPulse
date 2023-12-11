@@ -5,8 +5,8 @@ import os
 import json
 from datetime import datetime
 
-textblob_path = 'textblob-0.17.1.tar.gz'
-os.system(f"pip install --no-index --find-links=./ {textblob_path}")
+nltk_path = 'nltk-3.8.1.zip'
+os.system(f"pip install --no-index --find-links=./ {nltk_path}")
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "google_bigtable.json"
 bigtable_path = 'google-cloud-bigtable-2.17.0.tar.gz'
 os.system(f"pip install --no-index --find-links=./ {bigtable_path}")
@@ -14,10 +14,17 @@ redis_path = 'redis-5.0.1.tar.gz'
 os.system(f"pip install --no-index --find-links=./ {redis_path}")
 kafka_path = 'kafka-python-2.0.2.tar.gz'
 os.system(f"pip install --no-index --find-links=./ {kafka_path}")
+import nltk
+from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType, StructType, StructField
+from nltk.sentiment import SentimentIntensityAnalyzer
 from kafka import KafkaProducer
 from textblob import TextBlob
 from google.cloud import bigtable
 import redis
+
+nltk.download('vader_lexicon')
+sid = SentimentIntensityAnalyzer()
 
 redis_host = '10.183.205.163'
 redis_port = 6379
@@ -79,11 +86,24 @@ def write_row_to_bigtable(row):
     print(f"Loaded records - {row_key} and {resp}")
 
 
-def get_sentiment(text):
-    blob = TextBlob(text)
-    return blob.sentiment.polarity
-# Register the UDF
-sentiment_udf = udf(get_sentiment, DoubleType())
+# def get_sentiment(text):
+#     blob = TextBlob(text)
+#     return blob.sentiment.polarity
+# # Register the UDF
+# sentiment_udf = udf(get_sentiment, DoubleType())
+
+def analyze_sentiment(sentence):
+    sentiment_score = sid.polarity_scores(sentence)
+    max_sentiment = max(sentiment_score, key=lambda k: sentiment_score[k] if k != 'compound' else float('-inf'))
+
+    if max_sentiment == 'pos':
+        return "Positive sentiment"
+    elif max_sentiment == 'neg':
+        return "Negative sentiment"
+    else:
+        return "Neutral sentiment"
+
+sentiment_udf = udf(analyze_sentiment, StringType())
 
 
 spark = (SparkSession.builder.appName("KafkaApp")
@@ -113,8 +133,8 @@ data = base_df.select(
 )
 
 # Apply sentiment analysis to the 'tweet' column and add a new column 'sentiment'
-result_df = data.withColumn("sentiment", sentiment_udf(col("tweet")))
-result_df = result_df.withColumn("sentiment_label", get_sentiment_label(col("sentiment")))
+#result_df = data.withColumn("sentiment", sentiment_udf(col("tweet")))
+result_df = data.withColumn("sentiment_label", sentiment_udf("tweet"))
 
 query = result_df.writeStream \
     .foreachBatch(write_to_bigtable) \
